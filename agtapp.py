@@ -8,11 +8,11 @@ app.secret_key = 'your_secret_key'
 
 # Load the Excel file into a DataFrame
 def load_data():
-    return pd.read_excel(r"N:\Attendance\AGT_Attendacne_Register.xlsx")
+    return pd.read_excel(r"C:\ChukProj\flask_proj\AGT_Attendacne_Register.xlsx")
 
 # Save the DataFrame back to Excel
 def save_data(df):
-    df.to_excel(r"N:\Attendance\AGT_Attendacne_Register.xlsx", index=False)
+    df.to_excel(r"C:\ChukProj\flask_proj\AGT_Attendacne_Register.xlsx", index=False)
 
 @app.route('/')
 def home():
