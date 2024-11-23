@@ -2,17 +2,23 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import pandas as pd
 import smtplib
 from email.mime.text import MIMEText
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+# Define the path to the Excel file
+EXCEL_FILE_PATH = r"C:\ChukProj\flask_proj\AGT_Attendacne_Register.xlsx"
+
 # Load the Excel file into a DataFrame
 def load_data():
-    return pd.read_excel(r"C:\ChukProj\flask_proj\AGT_Attendacne_Register.xlsx")
+    if not os.path.exists(EXCEL_FILE_PATH):
+        raise FileNotFoundError(f"No such file or directory: '{EXCEL_FILE_PATH}'")
+    return pd.read_excel(EXCEL_FILE_PATH)
 
 # Save the DataFrame back to Excel
 def save_data(df):
-    df.to_excel(r"C:\ChukProj\flask_proj\AGT_Attendacne_Register.xlsx", index=False)
+    df.to_excel(EXCEL_FILE_PATH, index=False)
 
 @app.route('/')
 def home():
