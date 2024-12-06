@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Children Data Records</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Children Data Records</h1>
+        
+        <h2 class="mt-4">List of Names</h2>
+        <ul class="list-group">
+            {% for first_name, last_name in names %}
+                <li class="list-group-item">{{ first_name }} {{ last_name }}</li>
+            {% endfor %}
+        </ul>
+
+        <h2 class="mt-4">Add New Record</h2>
+        <form action="{{ url_for('add_record') }}" method="POST">
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" class="form-control" id="age" name="age" required>
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select class="form-control" id="gender" name="gender" required>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" class="form-control" id="dob" name="dob" required>
+            </div>
+            <div class="form-group">
+                <label for="tag_number">Tag Number</label>
+                <input type="text" class="form-control" id="tag_number" name="tag_number" required>
+            </div>
+            <div class="form-group">
+                <label for="attendance">Attendance</label>
+                <input type="text" class="form-control" id="attendance" name="attendance" required>
+            </div>
+            <div class="form-group">
+                <label for="date_of_entry">Date of Entry</label>
+                <input type="date" class="form-control" id="date_of_entry" name="date_of_entry" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Record</button>
+        </form>
+    </div>
+</body>
+</html>
