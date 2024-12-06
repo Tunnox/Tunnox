@@ -1,77 +1,92 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-import pandas as pd
-import smtplib
-from email.mime.text import MIMEText
-import os
+from flask import Flask, render_template, request, redirect, url_for
+import oracledb
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
 
-# Define the path to the Excel file
-EXCEL_FILE_PATH = r"C:\ChukProj\flask_proj\AGT_Attendacne_Register.xlsx"
-
-# Load the Excel file into a DataFrame
-def load_data():
-    if not os.path.exists(EXCEL_FILE_PATH):
-        raise FileNotFoundError(f"No such file or directory: '{EXCEL_FILE_PATH}'")
-    return pd.read_excel(EXCEL_FILE_PATH)
-
-# Save the DataFrame back to Excel
-def save_data(df):
-    df.to_excel(EXCEL_FILE_PATH, index=False)
+# Database connection details
+def get_db_connection():
+    return oracledb.connect(
+        user='ADMIN', 
+        password='vUcW96AC.gd.d4y', 
+        dsn='a1z2qbbh602iu73y_medium', 
+        config_dir="C:\\ChukProj\\config_dir",
+        wallet_location="C:\\ChukProj\\config_dir", 
+        wallet_password='gHpt468/Chuk.VGA.Lli.ps'
+    )
 
 @app.route('/')
-def home():
-    return render_template('login.html')
+def index():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT FIRST_NAME, LAST_NAME FROM AGT_CHILDREN_DATA_RECORDS")
+    names = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return render_template('index.html', names=names)
 
-@app.route('/login', methods=['POST'])
-def login():
-    username = request.form['username']
-    password = request.form['password']
-    if username == "AGT" and password == "agtchildren":
-        session['logged_in'] = True
-        return redirect(url_for('attendance'))
-    return "Invalid credentials, please try again."
+@app.route('/update', methods=['POST'])
+def update_record():
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    age = request.form['age']
+    gender = request.form['gender']
+    dob = request.form['dob']
+    tag_number = request.form['tag_number']
+    attendance = request.form['attendance']
+    date_of_entry = request.form['date_of_entry']
 
-@app.route('/attendance', methods=['GET', 'POST'])
-def attendance():
-    if not session.get('logged_in'):
-        return redirect(url_for('home'))
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        UPDATE AGT_CHILDREN_DATA_RECORDS
+        SET AGE = :age, GENDER = :gender, DATE_OF_BIRTH = :dob, TAG_NUMBER = :tag_number,
+            ATTENDANCE = :attendance, DATE_OF_ENTRY = :date_of_entry
+        WHERE FIRST_NAME = :first_name AND LAST_NAME = :last_name
+    """, {
+        'age': age,
+        'gender': gender,
+        'dob': dob,
+        'tag_number': tag_number,
+        'attendance': attendance,
+        'date_of_entry': date_of_entry,
+        'first_name': first_name,
+        'last_name': last_name
+    })
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return redirect(url_for('index'))
 
-    try:
-        df = load_data()
-        names = df[['First Name', 'Last Name']].values.tolist()
-    except Exception as e:
-        return f"Error loading data: {e}"
+@app.route('/add', methods=['POST'])
+def add_record():
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    age = request.form['age']
+    gender = request.form['gender']
+    dob = request.form['dob']
+    tag_number = request.form['tag_number']
+    attendance = request.form['attendance']
+    date_of_entry = request.form['date_of_entry']
 
-    if request.method == 'POST':
-        selected_name = request.form['name']
-        if selected_name:
-            row = df[df['First Name'] == selected_name].iloc[0]
-            # Update the DataFrame with new data
-            df.loc[df['First Name'] == selected_name, 'Age'] = request.form['age']
-            df.loc[df['First Name'] == selected_name, 'Gender'] = request.form['gender']
-            df.loc[df['First Name'] == selected_name, 'Tag Number'] = request.form['tag number']
-            df.loc[df['First Name'] == selected_name, 'Attendance'] = request.form['attendance']
-            df.loc[df['First Name'] == selected_name, 'Time'] = request.form['time']
-            save_data(df)
-
-        # Send email functionality
-        if 'send_email' in request.form:
-            send_email(df)
-
-    return render_template('attendance.html', names=names)
-
-def send_email(df):
-    msg = MIMEText(df.to_html())
-    msg['Subject'] = 'Attendance Data'
-    msg['From'] = 'realgeoemy@gmail.com'
-    msg['To'] = 'chukwuemekaumunna@gmail.com'
-
-    with smtplib.SMTP('smtp.gmail.com', 587) as server:
-        server.starttls()
-        server.login('realgeoemy@gmail.com', 'Oluwaseun1')
-        server.send_message(msg)
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        INSERT INTO AGT_CHILDREN_DATA_RECORDS (FIRST_NAME, LAST_NAME, AGE, GENDER, DATE_OF_BIRTH, TAG_NUMBER, ATTENDANCE, DATE_OF_ENTRY)
+        VALUES (:first_name, :last_name, :age, :gender, :dob, :tag_number, :attendance, :date_of_entry)
+    """, {
+        'first_name': first_name,
+        'last_name': last_name,
+        'age': age,
+        'gender': gender,
+        'dob': dob,
+        'tag_number': tag_number,
+        'attendance': attendance,
+        'date_of_entry': date_of_entry
+    })
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
